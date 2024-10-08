@@ -1,4 +1,32 @@
 # 1. File uploading using fastAPI
+# Function to extract text from a plain text file
+def get_text_file_text(file):
+    return file.read().decode('utf-8')  # Decode to convert bytes to string
+
+# Endpoint for uploading and processing a single file
+@app.post("/upload-file/")
+async def upload_file(file: UploadFile = File(...)):
+    index = len(extracted_texts) + 1  # Generate a new index for the file
+
+    # Check the file type and extract text accordingly
+    if file.content_type == "application/pdf":
+        text = get_pdf_text(file.file)
+    elif file.content_type == "application/vnd.openxmlformats-officedocument.wordprocessingml.document":
+        text = get_docx_text(file.file)
+    elif file.content_type == "text/plain":
+        text = get_text_file_text(file.file)
+    else:
+        return JSONResponse(status_code=400, content={"error": f"Invalid file type for {file.filename}. Please upload a PDF, DOCX, or plain text document."})
+
+    # Store extracted text with file index in temporary storage
+    extracted_texts[file.filename] = {
+        "text": text,
+        "file_index": index  # Store the file index in the metadata
+    }
+
+    # Return success message and current file index
+    return {"message": f"File '{file.filename}' processed and saved.", "file_index": index}
+
 # 2. QA using any LLM
 import os 
 from fastapi import FastAPI
