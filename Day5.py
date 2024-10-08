@@ -365,52 +365,6 @@ async def get_embeddings_for_all_files():
     # Return the vector embeddings for all files
     return {"all_files_embeddings": all_embeddings_data}
 
-import weaviate
-from langchain_weaviate.vectorstores import WeaviateVectorStore
-import weaviate_client as wvc  # Ensure you import the necessary module for authentication
-
-# Define your connection parameters
-WEAVIATE_CLUSTER = "https://grpc-gtsciyecsluwcmaacparba.c0.us-west3.gcp.weaviate.cloud"
-WEAVIATE_API_KEY = "CU9BCJ0LFPjooAfcK6JeojXU7Zh6LDs5Tb11"  # Replace with your actual Weaviate API key
-OPENAI_API_KEY = ""  # Replace with your actual OpenAI API key
-
-def connect_vector_db(use_cloud=True):
-    """
-    Connects to Weaviate vector database (either local or cloud).
-    
-    Args:
-        use_cloud (bool): If True, connects to Weaviate cloud; otherwise connects to local Weaviate.
-
-    Returns:
-        Weaviate client object.
-    """
-    if use_cloud:
-        client = weaviate.connect_to_weaviate_cloud(
-            cluster_url=WEAVIATE_CLUSTER,                                    # Replace with your Weaviate Cloud URL
-            auth_credentials=wvc.init.Auth.api_key(WEAVIATE_API_KEY),    # Replace with your Weaviate Cloud key
-            headers={"X-OpenAI-Api-Key": OPENAI_API_KEY}                  # Optional: Add header for OpenAI API key
-        )
-        print("Connected to Weaviate Cloud.")
-    else:
-        client = weaviate.connect_to_local()
-        print("Connected to local Weaviate instance.")
-    
-    return client
-db = WeaviateVectorStore.from_documents(all_chunks_data, all_embeddings_data, client=weaviate_client)
-# Example usage:
-weaviate_client = connect_vector_db(use_cloud=True)  # Connect to Weaviate Cloud
-# or
-# weaviate_client = connect_vector_db(use_cloud=False)  # Connect to local Weaviate
-
-
-docsearch = WeaviateVectorStore.from_documents(
-    texts,
-    embeddings,
-    client=client_ar,
-)
-t = docsearch.as_retriever()
-t.invoke("Suggest me three down payment programs or schemes")
-
 # initialize the database when the app starts
 if __name__ == '__main__': 
     uvicorn.run("main:app", host="127.0.0.1", port=8000, reload=True)
